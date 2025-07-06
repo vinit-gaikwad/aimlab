@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circle Click Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let score = 0;
+    const scoreDisplay = document.getElementById("score");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    class Circle {
+      constructor(x, y, r) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+
+      isClicked(mouseX, mouseY) {
+        const dx = this.x - mouseX;
+        const dy = this.y - mouseY;
+        return dx * dx + dy * dy <= this.r * this.r;
+      }
+    }
+
+    const circles = [];
+
+    function spawnCircle() {
+      const r = 30;
+      const x = Math.random() * (canvas.width - r * 2) + r;
+      const y = Math.random() * (canvas.height - r * 2) + r;
+      circles.push(new Circle(x, y, r));
+      setTimeout(spawnCircle, Math.random() * 1000 + 500);
+    }
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      for (let i = circles.length - 1; i >= 0; i--) {
+        if (circles[i].isClicked(mouseX, mouseY)) {
+          circles.splice(i, 1);
+          score++;
+          scoreDisplay.innerText = `Score: ${score}`;
+          break;
+        }
+      }
+    });
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const circle of circles) {
+        circle.draw();
+      }
+      requestAnimationFrame(gameLoop);
+    }
+
+    spawnCircle();
+    gameLoop();
+  </script>
+</body>
+</html>
